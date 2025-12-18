@@ -50,3 +50,27 @@ def test_rate_limiter_allows_10_req_sec_with_api_key():
 
         # 10 requests at 10 req/sec = ~1 second (not 3+ seconds)
         assert elapsed < 1.5
+
+
+def test_search_and_fetch_respects_rate_limit():
+    search_response = MagicMock()
+    search_response.json.return_value = {"esearchresult": {"idlist": ["123"], "count": "1"}}
+
+    fetch_response = MagicMock()
+    fetch_response.text = """<?xml version="1.0"?>
+    <PubmedArticleSet>
+        <PubmedArticle>
+            <MedlineCitation><PMID>123</PMID><Article><ArticleTitle>Test</ArticleTitle><Abstract><AbstractText>Abstract</AbstractText></Abstract><AuthorList><Author><LastName>Doe</LastName><ForeName>John</ForeName></Author></AuthorList><Journal><Title>Test Journal</Title></Journal></Article></MedlineCitation>
+        </PubmedArticle>
+    </PubmedArticleSet>"""
+
+    with patch('requests.get', side_effect=[search_response, fetch_response]) as mock_get:
+        pubmed = PubMed()
+
+        start = time.time()
+        pubmed.search_and_fetch("test")
+        elapsed = time.time() - start
+
+        # 2 requests at 3 req/sec = at least 0.33s between them
+        assert mock_get.call_count == 2
+        assert elapsed >= 0.3
