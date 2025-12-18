@@ -102,6 +102,7 @@ uv publish                 # Publier sur PyPI
 - [x] `Article.to_dict()` - Convertir un article en dictionnaire
 - [x] Export JSON : `to_json(articles)`, `save_json(articles, path)`
 - [x] Export CSV : `to_csv(articles)`, `save_csv(articles, path)` - UTF-8 BOM pour Excel/LibreOffice, listes jointes avec `; `
+- [x] Import CSV : `from_csv(path)` - Réimporte les articles depuis un CSV exporté
 
 ### À implémenter
 

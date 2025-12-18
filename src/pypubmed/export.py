@@ -2,6 +2,7 @@
 import csv
 import io
 import json
+from datetime import date
 from pathlib import Path
 
 from pypubmed.client import Article
@@ -86,3 +87,37 @@ def save_csv(articles: list[Article], path: str | Path) -> None:
         path: File path (string or Path object).
     """
     Path(path).write_text(to_csv(articles), encoding="utf-8")
+
+
+def _row_to_article(row: dict) -> Article:
+    """Convert a CSV row dict to an Article."""
+    return Article(
+        pmid=row["pmid"],
+        title=row["title"],
+        abstract=row["abstract"],
+        authors=row["authors"].split(LIST_SEPARATOR) if row["authors"] else [],
+        journal=row["journal"],
+        mesh_terms=row["mesh_terms"].split(LIST_SEPARATOR) if row["mesh_terms"] else [],
+        keywords=row["keywords"].split(LIST_SEPARATOR) if row["keywords"] else [],
+        doi=row["doi"] or None,
+        publication_date=date.fromisoformat(row["publication_date"]) if row["publication_date"] else None,
+        journal_date=date.fromisoformat(row["journal_date"]) if row["journal_date"] else None,
+    )
+
+
+def from_csv(path: str | Path) -> list[Article]:
+    """Load articles from a CSV file.
+
+    Args:
+        path: CSV file path (exported by save_csv).
+
+    Returns:
+        List of Article objects.
+    """
+    content = Path(path).read_text(encoding="utf-8-sig")  # Strips BOM
+    reader = csv.DictReader(io.StringIO(content))
+
+    articles = []
+    for row in reader:
+        articles.append(_row_to_article(row))
+    return articles

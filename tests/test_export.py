@@ -2,7 +2,7 @@ import json
 from datetime import date
 from pathlib import Path
 
-from pypubmed.export import to_json, save_json, to_csv, save_csv, CSV_COLUMNS, LIST_SEPARATOR
+from pypubmed.export import to_json, save_json, to_csv, save_csv, from_csv, CSV_COLUMNS, LIST_SEPARATOR
 
 
 class TestArticleToDict:
@@ -241,3 +241,82 @@ class TestSaveCsv:
         save_csv([article], filepath)
 
         assert Path(filepath).exists()
+
+
+class TestFromCsv:
+    """Tests for from_csv() function."""
+
+    def test_from_csv_returns_list(self, article, tmp_path):
+        filepath = tmp_path / "test.csv"
+        save_csv([article], filepath)
+
+        result = from_csv(filepath)
+
+        assert isinstance(result, list)
+        assert len(result) == 1
+
+    def test_from_csv_roundtrip_pmid(self, article, tmp_path):
+        filepath = tmp_path / "test.csv"
+        save_csv([article], filepath)
+
+        result = from_csv(filepath)[0]
+
+        assert result.pmid == article.pmid
+
+    def test_from_csv_roundtrip_title(self, article, tmp_path):
+        filepath = tmp_path / "test.csv"
+        save_csv([article], filepath)
+
+        result = from_csv(filepath)[0]
+
+        assert result.title == article.title
+
+    def test_from_csv_roundtrip_authors(self, article, tmp_path):
+        filepath = tmp_path / "test.csv"
+        save_csv([article], filepath)
+
+        result = from_csv(filepath)[0]
+
+        assert result.authors == article.authors
+
+    def test_from_csv_roundtrip_dates(self, article, tmp_path):
+        filepath = tmp_path / "test.csv"
+        save_csv([article], filepath)
+
+        result = from_csv(filepath)[0]
+
+        assert result.publication_date == article.publication_date
+        assert result.journal_date == article.journal_date
+
+    def test_from_csv_roundtrip_doi(self, article, tmp_path):
+        filepath = tmp_path / "test.csv"
+        save_csv([article], filepath)
+
+        result = from_csv(filepath)[0]
+
+        assert result.doi == article.doi
+
+    def test_from_csv_roundtrip_lists(self, article, tmp_path):
+        filepath = tmp_path / "test.csv"
+        save_csv([article], filepath)
+
+        result = from_csv(filepath)[0]
+
+        assert result.mesh_terms == article.mesh_terms
+        assert result.keywords == article.keywords
+
+    def test_from_csv_multiple_articles(self, articles, tmp_path):
+        filepath = tmp_path / "test.csv"
+        save_csv(articles, filepath)
+
+        result = from_csv(filepath)
+
+        assert len(result) == len(articles)
+
+    def test_from_csv_accepts_string_path(self, article, tmp_path):
+        filepath = str(tmp_path / "test.csv")
+        save_csv([article], filepath)
+
+        result = from_csv(filepath)
+
+        assert len(result) == 1
