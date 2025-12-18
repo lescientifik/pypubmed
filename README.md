@@ -47,6 +47,7 @@ for article in articles:
 - `authors` - List of author names
 - `journal` - Journal name
 - `mesh_terms` - MeSH terms (Medical Subject Headings)
+- `keywords` - Author keywords
 - `doi` - DOI (if available)
 - `url` - Link to PubMed page
 - `publication_date` - Electronic publication date (when available online)
