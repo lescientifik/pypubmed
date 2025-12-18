@@ -1,7 +1,7 @@
 [project]
 name = "pypubmed"
 version = "0.1.0"
-description = "Add your description here"
+description = "Simple Python client for the PubMed API"
 readme = "README.md"
 authors = [
     { name = "lescientifik", email = "theophraste.henry@gmail.com" }
