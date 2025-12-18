@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import date
 import xml.etree.ElementTree as ET
 
 import requests
@@ -20,6 +21,10 @@ class Article:
     abstract: str
     authors: list[str]
     doi: str | None
+    # Date when article became available online (most precise, has day)
+    publication_date: date | None
+    # Date of the journal issue (often just year/month, day defaults to 1)
+    journal_date: date | None
 
     @property
     def url(self) -> str:
@@ -30,7 +35,13 @@ class PubMed:
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key
 
-    def search(self, query: str, max_results: int = 20) -> SearchResult:
+    def search(
+        self,
+        query: str,
+        max_results: int = 20,
+        min_date: str | None = None,
+        max_date: str | None = None,
+    ) -> SearchResult:
         params = {
             "db": "pubmed",
             "term": query,
@@ -39,6 +50,12 @@ class PubMed:
         }
         if self.api_key:
             params["api_key"] = self.api_key
+        if min_date:
+            params["mindate"] = min_date
+            params["datetype"] = "pdat"
+        if max_date:
+            params["maxdate"] = max_date
+            params["datetype"] = "pdat"
 
         response = requests.get(f"{BASE_URL}/esearch.fcgi", params=params)
         response.raise_for_status()
@@ -88,12 +105,37 @@ class PubMed:
                     doi = article_id.text
                     break
 
+            # Parse publication_date (electronic) from ArticleDate
+            publication_date = self._parse_date(article_elem.find(".//ArticleDate"))
+            # Parse journal_date (print) from PubDate
+            journal_date = self._parse_date(article_elem.find(".//PubDate"))
+
             articles.append(Article(
                 pmid=pmid,
                 title=title,
                 abstract=abstract,
                 authors=authors,
                 doi=doi,
+                publication_date=publication_date,
+                journal_date=journal_date,
             ))
 
         return articles
+
+    def _parse_date(self, date_elem) -> date | None:
+        if date_elem is None:
+            return None
+        year = date_elem.findtext("Year")
+        if not year:
+            return None
+        month = date_elem.findtext("Month", "1")
+        day = date_elem.findtext("Day", "1")
+        try:
+            month = int(month)
+        except ValueError:
+            # Month as text (Jan, Feb, etc.)
+            months = {"jan": 1, "feb": 2, "mar": 3, "apr": 4,
+                      "may": 5, "jun": 6, "jul": 7, "aug": 8,
+                      "sep": 9, "oct": 10, "nov": 11, "dec": 12}
+            month = months.get(month.lower()[:3], 1)
+        return date(int(year), month, int(day))

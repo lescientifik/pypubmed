@@ -39,3 +39,18 @@ def test_article_has_doi(article):
 
 def test_article_has_url(article):
     assert article.url == f"https://pubmed.ncbi.nlm.nih.gov/{PMID}/"
+
+
+def test_article_has_publication_date(article):
+    # publication_date = electronic date (may be None for print-only articles)
+    if article.publication_date:
+        assert 1900 < article.publication_date.year < 2100
+        assert 1 <= article.publication_date.month <= 12
+        assert 1 <= article.publication_date.day <= 31
+
+
+def test_article_has_journal_date(article):
+    # journal_date = print journal issue date
+    assert 1900 < article.journal_date.year < 2100
+    assert 1 <= article.journal_date.month <= 12
+    assert 1 <= article.journal_date.day <= 31

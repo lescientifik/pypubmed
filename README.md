@@ -20,6 +20,9 @@ result = pubmed.search("CRISPR diabetes", max_results=10)
 print(f"Found {result.count} articles")
 print(result.ids)  # ['39344136', '39340892', ...]
 
+# Search with date filters
+result = pubmed.search("cancer", min_date="2024/01/01", max_date="2024/06/30")
+
 # Fetch article details
 articles = pubmed.fetch(result.ids)
 
@@ -39,6 +42,8 @@ for article in articles:
 - `authors` - List of author names
 - `doi` - DOI (if available)
 - `url` - Link to PubMed page
+- `publication_date` - Electronic publication date (when available online)
+- `journal_date` - Journal issue date (print publication)
 
 ## License
 
