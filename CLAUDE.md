@@ -103,6 +103,8 @@ uv publish                 # Publier sur PyPI
 - [x] Export JSON : `to_json(articles)`, `save_json(articles, path)`
 - [x] Export CSV : `to_csv(articles)`, `save_csv(articles, path)` - UTF-8 BOM pour Excel/LibreOffice, listes jointes avec `; `
 - [x] Import CSV : `from_csv(path)` - Réimporte les articles depuis un CSV exporté
+- [x] Import JSON : `from_json(json_str)` - Réimporte depuis JSON string
+- [x] CLI : `pypubmed search/fetch` avec options `--csv`, `--json`, `--max`
 
 ### À implémenter
 

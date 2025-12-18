@@ -42,6 +42,35 @@ def save_json(articles: list[Article], path: str | Path) -> None:
     Path(path).write_text(to_json(articles), encoding="utf-8")
 
 
+def _dict_to_article(data: dict) -> Article:
+    """Convert a dictionary to an Article."""
+    return Article(
+        pmid=data["pmid"],
+        title=data["title"],
+        abstract=data["abstract"],
+        authors=data["authors"],
+        journal=data["journal"],
+        mesh_terms=data["mesh_terms"],
+        keywords=data["keywords"],
+        doi=data["doi"],
+        publication_date=date.fromisoformat(data["publication_date"]) if data["publication_date"] else None,
+        journal_date=date.fromisoformat(data["journal_date"]) if data["journal_date"] else None,
+    )
+
+
+def from_json(json_str: str) -> list[Article]:
+    """Load articles from a JSON string.
+
+    Args:
+        json_str: JSON string (from to_json).
+
+    Returns:
+        List of Article objects.
+    """
+    data = json.loads(json_str)
+    return [_dict_to_article(item) for item in data]
+
+
 def _article_to_csv_row(article: Article) -> list[str]:
     """Convert an article to a list of CSV values."""
     data = article.to_dict()

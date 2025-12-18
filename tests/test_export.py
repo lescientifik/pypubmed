@@ -2,7 +2,7 @@ import json
 from datetime import date
 from pathlib import Path
 
-from pypubmed.export import to_json, save_json, to_csv, save_csv, from_csv, CSV_COLUMNS, LIST_SEPARATOR
+from pypubmed.export import to_json, save_json, from_json, to_csv, save_csv, from_csv, CSV_COLUMNS, LIST_SEPARATOR
 
 
 class TestArticleToDict:
@@ -117,6 +117,52 @@ class TestSaveJson:
         save_json([article], filepath)
 
         assert Path(filepath).exists()
+
+
+class TestFromJson:
+    """Tests for from_json() function."""
+
+    def test_from_json_returns_list(self, article):
+        json_str = to_json([article])
+
+        result = from_json(json_str)
+
+        assert isinstance(result, list)
+        assert len(result) == 1
+
+    def test_from_json_roundtrip_pmid(self, article):
+        json_str = to_json([article])
+
+        result = from_json(json_str)[0]
+
+        assert result.pmid == article.pmid
+
+    def test_from_json_roundtrip_authors(self, article):
+        json_str = to_json([article])
+
+        result = from_json(json_str)[0]
+
+        assert result.authors == article.authors
+
+    def test_from_json_roundtrip_dates(self, article):
+        json_str = to_json([article])
+
+        result = from_json(json_str)[0]
+
+        assert result.publication_date == article.publication_date
+        assert result.journal_date == article.journal_date
+
+    def test_from_json_multiple_articles(self, articles):
+        json_str = to_json(articles)
+
+        result = from_json(json_str)
+
+        assert len(result) == len(articles)
+
+    def test_from_json_empty_list(self):
+        result = from_json("[]")
+
+        assert result == []
 
 
 class TestToCsv:
