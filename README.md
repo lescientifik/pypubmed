@@ -28,6 +28,9 @@ result = pubmed.search("cancer", min_date="2024/01/01", max_date="2024/06/30")
 # Fetch article details
 articles = pubmed.fetch(result.ids)
 
+# Or search and fetch in one call
+articles = pubmed.search_and_fetch("CRISPR diabetes", max_results=10)
+
 for article in articles:
     print(article.title)
     print(article.authors)
