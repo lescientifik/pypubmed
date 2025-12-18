@@ -77,3 +77,15 @@ def test_mesh_terms_contains_valid_text(articles, index):
     mesh_terms = articles[index].mesh_terms
     if mesh_terms:
         assert any(c.isalnum() for c in mesh_terms[0])
+
+
+@pytest.mark.parametrize("index", range(5))
+def test_keywords_is_list(articles, index):
+    assert isinstance(articles[index].keywords, list)
+
+
+@pytest.mark.parametrize("index", range(5))
+def test_keywords_contains_valid_text(articles, index):
+    keywords = articles[index].keywords
+    if keywords:
+        assert any(c.isalnum() for c in keywords[0])
