@@ -85,27 +85,18 @@ uv publish                 # Publier sur PyPI
 
 ### Implémentées
 
-- [x] `PubMed.search(query)` - Recherche d'articles, retourne les IDs
+- [x] `PubMed.search(query, min_date, max_date)` - Recherche avec filtres de date
 - [x] `PubMed.fetch(ids)` - Récupérer les détails des articles
-- [x] `Article` dataclass - Modèle de données (pmid, title, abstract, authors)
+- [x] `Article` dataclass - pmid, title, abstract, authors, doi, url, publication_date, journal_date
+- [x] `SearchResult.count` - Nombre total de résultats
+- [x] Rate limiting automatique (3 req/sec sans clé, 10 req/sec avec clé)
+- [x] Support API key : `PubMed(api_key="...")`
 
 ### À implémenter
 
-#### Améliorations search (priorité moyenne)
+#### Priorité basse
 
 - [ ] Pagination (`search()` avec `offset`)
-- [x] Filtres de recherche (date)
-- [x] `search()` retourne le count total de résultats
-
-#### Confort (priorité basse)
-
-- [ ] Support API key (optionnel, pour augmenter le rate limit)
 - [ ] Gestion des erreurs custom (`PubMedError`, `RateLimitError`)
-- [x] `Article.url` - Lien vers l'article sur PubMed
-- [x] `Article.doi` - DOI de l'article
-
-#### Nice to have
-
-- [ ] Caching des résultats (optionnel)
 - [ ] Retry automatique sur erreur réseau
-- [ ] Export des résultats (JSON, CSV)
+- [ ] Caching des résultats

@@ -14,6 +14,8 @@ pip install pypubmed
 from pypubmed import PubMed
 
 pubmed = PubMed()
+# Or with API key for higher rate limit (10 req/sec vs 3 req/sec)
+pubmed = PubMed(api_key="your_api_key")
 
 # Search for articles
 result = pubmed.search("CRISPR diabetes", max_results=10)
