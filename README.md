@@ -42,6 +42,7 @@ for article in articles:
 - `title` - Article title
 - `abstract` - Abstract text
 - `authors` - List of author names
+- `journal` - Journal name
 - `doi` - DOI (if available)
 - `url` - Link to PubMed page
 - `publication_date` - Electronic publication date (when available online)

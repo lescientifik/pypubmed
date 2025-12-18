@@ -87,7 +87,7 @@ uv publish                 # Publier sur PyPI
 
 - [x] `PubMed.search(query, min_date, max_date)` - Recherche avec filtres de date
 - [x] `PubMed.fetch(ids)` - Récupérer les détails des articles
-- [x] `Article` dataclass - pmid, title, abstract, authors, doi, url, publication_date, journal_date
+- [x] `Article` dataclass - pmid, title, abstract, authors, journal, doi, url, publication_date, journal_date
 - [x] `SearchResult.count` - Nombre total de résultats
 - [x] Rate limiting automatique (3 req/sec sans clé, 10 req/sec avec clé)
 - [x] Support API key : `PubMed(api_key="...")`
