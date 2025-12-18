@@ -5,7 +5,13 @@ Simple, fast, and efficient Python client for the PubMed API.
 ## Installation
 
 ```bash
-pip install pypubmed
+uv add git+https://github.com/lescientifik/pypubmed.git
+```
+
+Or with pip:
+
+```bash
+pip install git+https://github.com/lescientifik/pypubmed.git
 ```
 
 ## Quick Start
