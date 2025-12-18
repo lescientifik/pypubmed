@@ -35,6 +35,20 @@ Créer un package Python **simple, rapide et efficace** avec un seul objectif :
   - Packaging : `uv build`
   - Publication : `uv publish`
 
+### Dépendances
+
+- **requests** : Client HTTP (simplicité > performance)
+- **pytest** : Tests (dev dependency)
+
+### Structure du code
+
+```
+src/pypubmed/
+├── __init__.py      # Exports publics
+├── client.py        # Classe PubMed (client principal)
+└── py.typed         # Support typing
+```
+
 ## API PubMed
 
 - Base URL : https://eutils.ncbi.nlm.nih.gov/entrez/eutils/
@@ -51,7 +65,39 @@ uv init                    # Initialiser le projet
 uv add <package>           # Ajouter une dépendance
 uv add --dev <package>     # Ajouter une dépendance de dev
 uv run <script>            # Exécuter un script
-uv run python -m pytest    # Lancer les tests
+uv run pytest              # Lancer les tests
 uv build                   # Construire le package
 uv publish                 # Publier sur PyPI
 ```
+
+## Features
+
+### Implémentées
+
+- [x] `PubMed.search(query)` - Recherche d'articles, retourne les IDs
+
+### À implémenter
+
+#### Core (priorité haute)
+
+- [ ] `PubMed.fetch(ids)` - Récupérer les détails des articles (titre, abstract, auteurs, etc.)
+- [ ] `Article` dataclass - Modèle de données pour un article
+
+#### Améliorations search (priorité moyenne)
+
+- [ ] Pagination (`search()` avec `offset`)
+- [ ] Filtres de recherche (date, type d'article, journal)
+- [ ] `search()` retourne le count total de résultats
+
+#### Confort (priorité basse)
+
+- [ ] Support API key (optionnel, pour augmenter le rate limit)
+- [ ] Gestion des erreurs custom (`PubMedError`, `RateLimitError`)
+- [ ] `Article.url` - Lien vers l'article sur PubMed
+- [ ] `Article.doi` - DOI de l'article
+
+#### Nice to have
+
+- [ ] Caching des résultats (optionnel)
+- [ ] Retry automatique sur erreur réseau
+- [ ] Export des résultats (JSON, CSV)
