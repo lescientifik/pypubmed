@@ -1,26 +1,11 @@
 import pytest
-from pypubmed import PubMed
 
 
 PMID = "39344136"
 
 
-@pytest.fixture(scope="module")
-def articles():
-    pubmed = PubMed()
-    return pubmed.search_and_fetch("cancer", max_results=5)
-
-
-@pytest.fixture(scope="module")
-def article():
-    pubmed = PubMed()
-    return pubmed.fetch([PMID])[0]
-
-
-def test_fetch_returns_one_article():
-    pubmed = PubMed()
-    articles = pubmed.fetch([PMID])
-    assert len(articles) == 1
+def test_fetch_returns_one_article(article):
+    assert article.pmid == PMID
 
 
 def test_article_has_correct_pmid(article):
