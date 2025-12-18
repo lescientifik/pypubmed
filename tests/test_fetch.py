@@ -6,6 +6,12 @@ PMID = "39344136"
 
 
 @pytest.fixture(scope="module")
+def articles():
+    pubmed = PubMed()
+    return pubmed.search_and_fetch("cancer", max_results=5)
+
+
+@pytest.fixture(scope="module")
 def article():
     pubmed = PubMed()
     return pubmed.fetch([PMID])[0]
@@ -59,3 +65,15 @@ def test_article_has_journal_date(article):
 def test_article_has_journal(article):
     assert isinstance(article.journal, str)
     assert len(article.journal) > 3
+
+
+@pytest.mark.parametrize("index", range(5))
+def test_mesh_terms_is_list(articles, index):
+    assert isinstance(articles[index].mesh_terms, list)
+
+
+@pytest.mark.parametrize("index", range(5))
+def test_mesh_terms_contains_valid_text(articles, index):
+    mesh_terms = articles[index].mesh_terms
+    if mesh_terms:
+        assert any(c.isalnum() for c in mesh_terms[0])

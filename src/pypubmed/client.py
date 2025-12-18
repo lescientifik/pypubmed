@@ -39,6 +39,7 @@ class Article:
     abstract: str
     authors: list[str]
     journal: str
+    mesh_terms: list[str]
     doi: str | None
     # Date when article became available online (most precise, has day)
     publication_date: date | None
@@ -142,6 +143,12 @@ class PubMed:
 
             journal = article_elem.findtext(".//Journal/Title", default="")
 
+            mesh_terms = [
+                mesh.findtext("DescriptorName", default="")
+                for mesh in article_elem.findall(".//MeshHeading")
+                if mesh.findtext("DescriptorName")
+            ]
+
             # Parse publication_date (electronic) from ArticleDate
             publication_date = self._parse_date(article_elem.find(".//ArticleDate"))
             # Parse journal_date (print) from PubDate
@@ -153,6 +160,7 @@ class PubMed:
                 abstract=abstract,
                 authors=authors,
                 journal=journal,
+                mesh_terms=mesh_terms,
                 doi=doi,
                 publication_date=publication_date,
                 journal_date=journal_date,
