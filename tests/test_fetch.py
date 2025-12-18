@@ -1,22 +1,40 @@
-from pypubmed import PubMed, Article
+from pypubmed import PubMed
 
 
-def test_fetch_returns_articles():
+PMID = "39344136"
+
+
+def test_fetch_returns_one_article():
     pubmed = PubMed()
-    articles = pubmed.fetch(["39344136"])
-
+    articles = pubmed.fetch([PMID])
     assert len(articles) == 1
-    article = articles[0]
-    assert isinstance(article, Article)
-    assert article.pmid == "39344136"
+
+
+def test_article_has_correct_pmid():
+    pubmed = PubMed()
+    article = pubmed.fetch([PMID])[0]
+    assert article.pmid == PMID
+
+
+def test_article_has_title():
+    pubmed = PubMed()
+    article = pubmed.fetch([PMID])[0]
     assert article.title
+
+
+def test_article_has_abstract():
+    pubmed = PubMed()
+    article = pubmed.fetch([PMID])[0]
     assert article.abstract
-    assert isinstance(article.authors, list)
+
+
+def test_article_has_authors():
+    pubmed = PubMed()
+    article = pubmed.fetch([PMID])[0]
+    assert len(article.authors) > 0
 
 
 def test_article_has_doi():
     pubmed = PubMed()
-    articles = pubmed.fetch(["39344136"])
-    article = articles[0]
-    assert article.doi
+    article = pubmed.fetch([PMID])[0]
     assert article.doi.startswith("10.")

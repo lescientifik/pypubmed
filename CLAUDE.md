@@ -20,6 +20,23 @@ Créer un package Python **simple, rapide et efficace** avec un seul objectif :
 3. **Écrire le code** pour faire passer le test
 4. **Réexécuter le test** : `uv run pytest` → doit **PASS**
 
+### Tests : pattern AAA
+
+```python
+def test_one_behavior():
+    # Arrange
+    pubmed = PubMed()
+
+    # Act
+    result = pubmed.search("cancer")
+
+    # Assert (UN seul comportement)
+    assert len(result.ids) > 0
+```
+
+- **1 test = 1 comportement**
+- Nommer le test : `test_<ce_qui_est_testé>`
+
 ### Commits fréquents
 
 - Committer **à chaque fonctionnalité qui MARCHE**
@@ -96,7 +113,7 @@ uv publish                 # Publier sur PyPI
 - [ ] Support API key (optionnel, pour augmenter le rate limit)
 - [ ] Gestion des erreurs custom (`PubMedError`, `RateLimitError`)
 - [ ] `Article.url` - Lien vers l'article sur PubMed
-- [ ] `Article.doi` - DOI de l'article
+- [x] `Article.doi` - DOI de l'article
 
 #### Nice to have
 
