@@ -26,3 +26,10 @@ def test_search_filters_by_date():
     for article in articles:
         assert article.publication_date.year == 2024
         assert article.publication_date.month == 6
+
+
+def test_search_and_fetch_returns_articles():
+    pubmed = PubMed()
+    articles = pubmed.search_and_fetch("CRISPR", max_results=3)
+    assert len(articles) == 3
+    assert all(a.pmid for a in articles)

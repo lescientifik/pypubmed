@@ -89,6 +89,18 @@ class PubMed:
 
         return SearchResult(ids=ids, count=count)
 
+    def search_and_fetch(
+        self,
+        query: str,
+        max_results: int = 20,
+        min_date: str | None = None,
+        max_date: str | None = None,
+    ) -> list[Article]:
+        result = self.search(query, max_results, min_date, max_date)
+        if not result.ids:
+            return []
+        return self.fetch(result.ids)
+
     def fetch(self, ids: list[str]) -> list[Article]:
         params = {
             "db": "pubmed",
