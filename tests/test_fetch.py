@@ -54,3 +54,8 @@ def test_article_has_journal_date(article):
     assert 1900 < article.journal_date.year < 2100
     assert 1 <= article.journal_date.month <= 12
     assert 1 <= article.journal_date.day <= 31
+
+
+def test_article_has_journal(article):
+    assert isinstance(article.journal, str)
+    assert len(article.journal) > 3
