@@ -75,13 +75,10 @@ uv publish                 # Publier sur PyPI
 ### Implémentées
 
 - [x] `PubMed.search(query)` - Recherche d'articles, retourne les IDs
+- [x] `PubMed.fetch(ids)` - Récupérer les détails des articles
+- [x] `Article` dataclass - Modèle de données (pmid, title, abstract, authors)
 
 ### À implémenter
-
-#### Core (priorité haute)
-
-- [ ] `PubMed.fetch(ids)` - Récupérer les détails des articles (titre, abstract, auteurs, etc.)
-- [ ] `Article` dataclass - Modèle de données pour un article
 
 #### Améliorations search (priorité moyenne)
 

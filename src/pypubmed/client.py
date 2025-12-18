@@ -10,6 +10,7 @@ BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
 @dataclass
 class SearchResult:
     ids: list[str]
+    count: int
 
 
 @dataclass
@@ -38,9 +39,11 @@ class PubMed:
         response.raise_for_status()
 
         data = response.json()
-        ids = data.get("esearchresult", {}).get("idlist", [])
+        result = data.get("esearchresult", {})
+        ids = result.get("idlist", [])
+        count = int(result.get("count", 0))
 
-        return SearchResult(ids=ids)
+        return SearchResult(ids=ids, count=count)
 
     def fetch(self, ids: list[str]) -> list[Article]:
         params = {
