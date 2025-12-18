@@ -1,11 +1,28 @@
 from dataclasses import dataclass
 from datetime import date
+import time
 import xml.etree.ElementTree as ET
 
 import requests
 
 
 BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+# PubMed API limit: 3 requests/sec without API key, 10 with API key
+REQUESTS_PER_SECOND = 3
+
+
+class RateLimiter:
+    """Limits requests to a maximum rate per second."""
+
+    def __init__(self, requests_per_second: int = REQUESTS_PER_SECOND):
+        self.min_interval = 1.0 / requests_per_second
+        self.last_request = 0.0
+
+    def wait(self):
+        elapsed = time.time() - self.last_request
+        if elapsed < self.min_interval:
+            time.sleep(self.min_interval - elapsed)
+        self.last_request = time.time()
 
 
 @dataclass
@@ -34,6 +51,7 @@ class Article:
 class PubMed:
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key
+        self._rate_limiter = RateLimiter()
 
     def search(
         self,
@@ -57,6 +75,7 @@ class PubMed:
             params["maxdate"] = max_date
             params["datetype"] = "pdat"
 
+        self._rate_limiter.wait()
         response = requests.get(f"{BASE_URL}/esearch.fcgi", params=params)
         response.raise_for_status()
 
@@ -76,6 +95,7 @@ class PubMed:
         if self.api_key:
             params["api_key"] = self.api_key
 
+        self._rate_limiter.wait()
         response = requests.get(f"{BASE_URL}/efetch.fcgi", params=params)
         response.raise_for_status()
 

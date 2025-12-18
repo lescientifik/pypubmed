@@ -94,7 +94,7 @@ uv publish                 # Publier sur PyPI
 #### Améliorations search (priorité moyenne)
 
 - [ ] Pagination (`search()` avec `offset`)
-- [ ] Filtres de recherche (date, type d'article, journal)
+- [x] Filtres de recherche (date)
 - [x] `search()` retourne le count total de résultats
 
 #### Confort (priorité basse)
