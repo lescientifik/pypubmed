@@ -19,3 +19,9 @@ build-backend = "uv_build"
 dev = [
     "pytest>=9.0.2",
 ]
+
+[tool.pytest.ini_options]
+addopts = "-m 'not slow'"
+markers = [
+    "slow: marks tests as slow (deselected by default, run with -m slow)",
+]
