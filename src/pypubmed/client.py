@@ -21,6 +21,10 @@ class Article:
     authors: list[str]
     doi: str | None
 
+    @property
+    def url(self) -> str:
+        return f"https://pubmed.ncbi.nlm.nih.gov/{self.pmid}/"
+
 
 class PubMed:
     def __init__(self, api_key: str | None = None):

@@ -38,3 +38,9 @@ def test_article_has_doi():
     pubmed = PubMed()
     article = pubmed.fetch([PMID])[0]
     assert article.doi.startswith("10.")
+
+
+def test_article_has_url():
+    pubmed = PubMed()
+    article = pubmed.fetch([PMID])[0]
+    assert article.url == f"https://pubmed.ncbi.nlm.nih.gov/{PMID}/"
