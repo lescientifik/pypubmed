@@ -7,14 +7,15 @@ import requests
 
 
 BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
-# PubMed API limit: 3 requests/sec without API key, 10 with API key
-REQUESTS_PER_SECOND = 3
+# PubMed API limits
+RATE_LIMIT_DEFAULT = 3   # requests/sec without API key
+RATE_LIMIT_WITH_KEY = 10  # requests/sec with API key
 
 
 class RateLimiter:
     """Limits requests to a maximum rate per second."""
 
-    def __init__(self, requests_per_second: int = REQUESTS_PER_SECOND):
+    def __init__(self, requests_per_second: int = RATE_LIMIT_DEFAULT):
         self.min_interval = 1.0 / requests_per_second
         self.last_request = 0.0
 
@@ -51,7 +52,8 @@ class Article:
 class PubMed:
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key
-        self._rate_limiter = RateLimiter()
+        rate = RATE_LIMIT_WITH_KEY if api_key else RATE_LIMIT_DEFAULT
+        self._rate_limiter = RateLimiter(rate)
 
     def search(
         self,
