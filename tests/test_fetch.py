@@ -1,11 +1,15 @@
 import pytest
 
+from pypubmed import PubMed
+
 
 PMID = "39344136"
 
 
-def test_fetch_returns_one_article(article):
-    assert article.pmid == PMID
+def test_fetch_empty_ids_raises():
+    pubmed = PubMed()
+    with pytest.raises(ValueError):
+        pubmed.fetch([])
 
 
 def test_article_has_correct_pmid(article):

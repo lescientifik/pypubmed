@@ -1,9 +1,19 @@
 from dataclasses import dataclass
 from datetime import date
 import time
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 
 import requests
+
+
+class PubMedError(Exception):
+    """Base exception for PyPubMed."""
+    pass
+
+
+class APIError(PubMedError):
+    """Raised when the PubMed API returns an error."""
+    pass
 
 
 BASE_URL = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
@@ -53,10 +63,48 @@ class Article:
 
 
 class PubMed:
-    def __init__(self, api_key: str | None = None):
+    MAX_RETRIES = 3
+    RETRY_BACKOFF = 1.0  # seconds
+
+    def __init__(self, api_key: str | None = None, cache: bool = False, cache_ttl: int = 3600):
         self.api_key = api_key
+        self.cache = cache
+        self.cache_ttl = cache_ttl  # seconds
+        self._cache: dict[str, tuple[Article, float]] = {}  # pmid -> (article, timestamp)
         rate = RATE_LIMIT_WITH_KEY if api_key else RATE_LIMIT_DEFAULT
         self._rate_limiter = RateLimiter(rate)
+        self._session = requests.Session()
+
+    def clear_cache(self) -> None:
+        """Clear all cached articles."""
+        self._cache.clear()
+
+    def _request(self, url: str, params: dict) -> requests.Response:
+        """Make HTTP request with retry on transient errors."""
+        last_error = None
+
+        for attempt in range(self.MAX_RETRIES + 1):
+            try:
+                self._rate_limiter.wait()
+                response = self._session.get(url, params=params)
+                response.raise_for_status()
+                return response
+            except requests.ConnectionError as e:
+                last_error = e
+            except requests.Timeout as e:
+                last_error = e
+            except requests.HTTPError as e:
+                # Retry on 5xx server errors and 429 rate limit
+                if response.status_code >= 500 or response.status_code == 429:
+                    last_error = e
+                else:
+                    raise APIError(str(e)) from e
+
+            # Wait before retry (except on last attempt)
+            if attempt < self.MAX_RETRIES:
+                time.sleep(self.RETRY_BACKOFF * (2 ** attempt))
+
+        raise APIError(str(last_error)) from last_error
 
     def search(
         self,
@@ -65,6 +113,9 @@ class PubMed:
         min_date: str | None = None,
         max_date: str | None = None,
     ) -> SearchResult:
+        if max_results <= 0:
+            raise ValueError("max_results must be greater than 0")
+
         params = {
             "db": "pubmed",
             "term": query,
@@ -80,10 +131,7 @@ class PubMed:
             params["maxdate"] = max_date
             params["datetype"] = "pdat"
 
-        self._rate_limiter.wait()
-        response = requests.get(f"{BASE_URL}/esearch.fcgi", params=params)
-        response.raise_for_status()
-
+        response = self._request(f"{BASE_URL}/esearch.fcgi", params)
         data = response.json()
         result = data.get("esearchresult", {})
         ids = result.get("idlist", [])
@@ -104,19 +152,49 @@ class PubMed:
         return self.fetch(result.ids)
 
     def fetch(self, ids: list[str]) -> list[Article]:
+        if not ids:
+            raise ValueError("ids cannot be empty")
+
+        # Check cache for hits (respecting TTL)
+        if self.cache:
+            now = time.time()
+            cached = {}
+            for id in ids:
+                if id in self._cache:
+                    article, timestamp = self._cache[id]
+                    if now - timestamp < self.cache_ttl:
+                        cached[id] = article
+            missing_ids = [id for id in ids if id not in cached]
+
+            # All in cache
+            if not missing_ids:
+                return [cached[id] for id in ids]
+        else:
+            cached = {}
+            missing_ids = ids
+
         params = {
             "db": "pubmed",
-            "id": ",".join(ids),
+            "id": ",".join(missing_ids),
             "retmode": "xml",
         }
         if self.api_key:
             params["api_key"] = self.api_key
 
-        self._rate_limiter.wait()
-        response = requests.get(f"{BASE_URL}/efetch.fcgi", params=params)
-        response.raise_for_status()
+        response = self._request(f"{BASE_URL}/efetch.fcgi", params)
+        fetched = self._parse_articles(response.text)
 
-        return self._parse_articles(response.text)
+        # Store in cache if enabled
+        if self.cache:
+            now = time.time()
+            for article in fetched:
+                self._cache[article.pmid] = (article, now)
+                cached[article.pmid] = article
+
+        # Return in original order
+        if self.cache:
+            return [cached[id] for id in ids if id in cached]
+        return fetched
 
     def _parse_articles(self, xml_text: str) -> list[Article]:
         root = ET.fromstring(xml_text)

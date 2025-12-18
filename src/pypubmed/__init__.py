@@ -1,3 +1,3 @@
-from pypubmed.client import Article, PubMed, SearchResult
+from pypubmed.client import APIError, Article, PubMed, PubMedError, SearchResult
 
-__all__ = ["Article", "PubMed", "SearchResult"]
+__all__ = ["APIError", "Article", "PubMed", "PubMedError", "SearchResult"]

@@ -92,27 +92,22 @@ uv publish                 # Publier sur PyPI
 - [x] `SearchResult.count` - Nombre total de résultats
 - [x] Rate limiting automatique (3 req/sec sans clé, 10 req/sec avec clé)
 - [x] Support API key : `PubMed(api_key="...")`
+- [x] Exceptions custom : `PubMedError`, `APIError`
+- [x] Validation d'input : `fetch([])` → `ValueError`, `max_results <= 0` → `ValueError`
+- [x] Sécurité XML avec `defusedxml`
+- [x] Connection pooling avec `requests.Session()`
+- [x] Retry automatique sur erreur réseau (3 retries, backoff exponentiel)
+- [x] Cache optionnel : `PubMed(cache=True, cache_ttl=3600)`, `clear_cache()`
 
 ### À implémenter
 
-#### Priorité haute (code review)
-
-- [ ] Supprimer test dupliqué (`test_fetch_returns_one_article` = `test_article_has_correct_pmid`)
-- [ ] Validation d'input : `ids` vide dans `fetch()` → return `[]`
-- [ ] Validation d'input : `max_results` <= 0 → raise `ValueError`
-- [ ] Exceptions custom : `PubMedError`, `APIError`
-- [ ] Sécurité XML : remplacer `xml.etree.ElementTree` par `defusedxml`
-- [ ] Ajouter fichier `LICENSE` (MIT)
-- [ ] Supprimer `plan.md` obsolète
-
 #### Priorité moyenne
 
-- [ ] Connection pooling avec `requests.Session()`
 - [ ] Tests unitaires avec mocking (fixtures mock dans conftest.py)
-- [ ] Retry automatique sur erreur réseau (avec backoff)
 
-#### Priorité basse
+#### Priorité basse (pas besoin pour l'instant)
 
 - [ ] Pagination (`search()` avec `offset`)
-- [ ] Caching des résultats
 - [ ] Support async (httpx)
+
+**Note:** Ne pas proposer ces features - l'utilisateur demandera si besoin.

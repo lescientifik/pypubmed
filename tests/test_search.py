@@ -1,3 +1,20 @@
+import pytest
+
+from pypubmed import PubMed
+
+
+def test_search_invalid_max_results_raises():
+    pubmed = PubMed()
+    with pytest.raises(ValueError):
+        pubmed.search("cancer", max_results=0)
+
+
+def test_search_negative_max_results_raises():
+    pubmed = PubMed()
+    with pytest.raises(ValueError):
+        pubmed.search("cancer", max_results=-1)
+
+
 def test_search_returns_ids(search_result):
     assert len(search_result.ids) > 0
 
