@@ -57,6 +57,7 @@ Créer un package Python **simple, rapide et efficace** avec un seul objectif :
 src/pypubmed/
 ├── __init__.py      # Exports publics
 ├── client.py        # Classe PubMed (client principal)
+├── export.py        # Fonctions d'export (JSON, CSV)
 └── py.typed         # Support typing
 ```
 
@@ -98,6 +99,9 @@ uv publish                 # Publier sur PyPI
 - [x] Connection pooling avec `requests.Session()`
 - [x] Retry automatique sur erreur réseau (3 retries, backoff exponentiel)
 - [x] Cache optionnel : `PubMed(cache=True, cache_ttl=3600)`, `clear_cache()`
+- [x] `Article.to_dict()` - Convertir un article en dictionnaire
+- [x] Export JSON : `to_json(articles)`, `save_json(articles, path)`
+- [x] Export CSV : `to_csv(articles)`, `save_csv(articles, path)` - UTF-8 BOM pour Excel/LibreOffice, listes jointes avec `; `
 
 ### À implémenter
 

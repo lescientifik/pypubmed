@@ -64,6 +64,22 @@ class Article:
     def url(self) -> str:
         return f"https://pubmed.ncbi.nlm.nih.gov/{self.pmid}/"
 
+    def to_dict(self) -> dict:
+        """Convert article to dictionary with ISO date strings."""
+        return {
+            "pmid": self.pmid,
+            "title": self.title,
+            "abstract": self.abstract,
+            "authors": self.authors,
+            "journal": self.journal,
+            "mesh_terms": self.mesh_terms,
+            "keywords": self.keywords,
+            "doi": self.doi,
+            "url": self.url,
+            "publication_date": self.publication_date.isoformat() if self.publication_date else None,
+            "journal_date": self.journal_date.isoformat() if self.journal_date else None,
+        }
+
 
 class PubMed:
     """Client for the PubMed API.
