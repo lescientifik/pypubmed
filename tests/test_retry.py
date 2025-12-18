@@ -8,6 +8,41 @@ import requests
 from pypubmed import PubMed, APIError
 
 
+def test_request_uses_timeout():
+    """Verify requests are made with timeout."""
+    pubmed = PubMed()
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status = Mock()
+    mock_response.json.return_value = {"esearchresult": {"idlist": [], "count": "0"}}
+
+    pubmed._session.get = Mock(return_value=mock_response)
+    pubmed.search("test", max_results=1)
+
+    # Verify timeout was passed
+    call_kwargs = pubmed._session.get.call_args[1]
+    assert "timeout" in call_kwargs
+    assert call_kwargs["timeout"] == (5, 30)
+
+
+def test_request_includes_tool_param():
+    """Verify requests include tool parameter."""
+    pubmed = PubMed()
+
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status = Mock()
+    mock_response.json.return_value = {"esearchresult": {"idlist": [], "count": "0"}}
+
+    pubmed._session.get = Mock(return_value=mock_response)
+    pubmed.search("test", max_results=1)
+
+    # Verify tool param was passed
+    call_kwargs = pubmed._session.get.call_args[1]
+    assert call_kwargs["params"]["tool"] == "pypubmed"
+
+
 @patch("pypubmed.client.time.sleep")  # Mock sleep to speed up tests
 class TestRetryOnTransientError:
     """Test retry behavior on transient errors."""

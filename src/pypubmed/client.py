@@ -1,9 +1,12 @@
 from dataclasses import dataclass
 from datetime import date
+import re
 import time
 import defusedxml.ElementTree as ET
 
 import requests
+
+DATE_PATTERN = re.compile(r'^\d{4}/\d{2}/\d{2}$')
 
 
 class PubMedError(Exception):
@@ -63,8 +66,18 @@ class Article:
 
 
 class PubMed:
+    """Client for the PubMed API.
+
+    Args:
+        api_key: Optional NCBI API key for higher rate limits.
+        cache: Enable caching of fetched articles.
+        cache_ttl: Cache time-to-live in seconds (default 3600).
+    """
+
     MAX_RETRIES = 3
     RETRY_BACKOFF = 1.0  # seconds
+    TIMEOUT = (5, 30)  # (connect, read) in seconds
+    MAX_IDS_PER_REQUEST = 200  # PubMed API limit
 
     def __init__(self, api_key: str | None = None, cache: bool = False, cache_ttl: int = 3600):
         self.api_key = api_key
@@ -86,7 +99,7 @@ class PubMed:
         for attempt in range(self.MAX_RETRIES + 1):
             try:
                 self._rate_limiter.wait()
-                response = self._session.get(url, params=params)
+                response = self._session.get(url, params=params, timeout=self.TIMEOUT)
                 response.raise_for_status()
                 return response
             except requests.ConnectionError as e:
@@ -113,14 +126,34 @@ class PubMed:
         min_date: str | None = None,
         max_date: str | None = None,
     ) -> SearchResult:
+        """Search PubMed for articles matching a query.
+
+        Args:
+            query: Search terms (PubMed query syntax supported).
+            max_results: Maximum number of IDs to return (default 20).
+            min_date: Minimum publication date (format: YYYY/MM/DD).
+            max_date: Maximum publication date (format: YYYY/MM/DD).
+
+        Returns:
+            SearchResult with list of PMIDs and total count.
+
+        Raises:
+            ValueError: If max_results <= 0 or date format is invalid.
+            APIError: If the PubMed API returns an error.
+        """
         if max_results <= 0:
             raise ValueError("max_results must be greater than 0")
+        if min_date and not DATE_PATTERN.match(min_date):
+            raise ValueError("min_date must be in YYYY/MM/DD format")
+        if max_date and not DATE_PATTERN.match(max_date):
+            raise ValueError("max_date must be in YYYY/MM/DD format")
 
         params = {
             "db": "pubmed",
             "term": query,
             "retmax": max_results,
             "retmode": "json",
+            "tool": "pypubmed",
         }
         if self.api_key:
             params["api_key"] = self.api_key
@@ -146,12 +179,42 @@ class PubMed:
         min_date: str | None = None,
         max_date: str | None = None,
     ) -> list[Article]:
+        """Search PubMed and fetch article details in one call.
+
+        Args:
+            query: Search terms (PubMed query syntax supported).
+            max_results: Maximum number of articles to return (default 20).
+            min_date: Minimum publication date (format: YYYY/MM/DD).
+            max_date: Maximum publication date (format: YYYY/MM/DD).
+
+        Returns:
+            List of Article objects with full details.
+
+        Raises:
+            ValueError: If max_results <= 0 or date format is invalid.
+            APIError: If the PubMed API returns an error.
+        """
         result = self.search(query, max_results, min_date, max_date)
         if not result.ids:
             return []
         return self.fetch(result.ids)
 
     def fetch(self, ids: list[str]) -> list[Article]:
+        """Fetch article details by PubMed IDs.
+
+        Args:
+            ids: List of PubMed IDs (PMIDs) to fetch.
+
+        Returns:
+            List of Article objects with full details.
+
+        Raises:
+            ValueError: If ids is empty.
+            APIError: If the PubMed API returns an error.
+
+        Note:
+            Large batches (>200 IDs) are automatically chunked.
+        """
         if not ids:
             raise ValueError("ids cannot be empty")
 
@@ -173,16 +236,11 @@ class PubMed:
             cached = {}
             missing_ids = ids
 
-        params = {
-            "db": "pubmed",
-            "id": ",".join(missing_ids),
-            "retmode": "xml",
-        }
-        if self.api_key:
-            params["api_key"] = self.api_key
-
-        response = self._request(f"{BASE_URL}/efetch.fcgi", params)
-        fetched = self._parse_articles(response.text)
+        # Fetch in chunks if needed
+        fetched = []
+        for i in range(0, len(missing_ids), self.MAX_IDS_PER_REQUEST):
+            chunk = missing_ids[i:i + self.MAX_IDS_PER_REQUEST]
+            fetched.extend(self._fetch_batch(chunk))
 
         # Store in cache if enabled
         if self.cache:
@@ -195,6 +253,20 @@ class PubMed:
         if self.cache:
             return [cached[id] for id in ids if id in cached]
         return fetched
+
+    def _fetch_batch(self, ids: list[str]) -> list[Article]:
+        """Fetch a batch of articles (max 200 IDs)."""
+        params = {
+            "db": "pubmed",
+            "id": ",".join(ids),
+            "retmode": "xml",
+            "tool": "pypubmed",
+        }
+        if self.api_key:
+            params["api_key"] = self.api_key
+
+        response = self._request(f"{BASE_URL}/efetch.fcgi", params)
+        return self._parse_articles(response.text)
 
     def _parse_articles(self, xml_text: str) -> list[Article]:
         root = ET.fromstring(xml_text)

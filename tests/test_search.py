@@ -15,6 +15,18 @@ def test_search_negative_max_results_raises():
         pubmed.search("cancer", max_results=-1)
 
 
+def test_search_invalid_min_date_format_raises():
+    pubmed = PubMed()
+    with pytest.raises(ValueError, match="YYYY/MM/DD"):
+        pubmed.search("cancer", min_date="2024-01-01")
+
+
+def test_search_invalid_max_date_format_raises():
+    pubmed = PubMed()
+    with pytest.raises(ValueError, match="YYYY/MM/DD"):
+        pubmed.search("cancer", max_date="invalid")
+
+
 def test_search_returns_ids(search_result):
     assert len(search_result.ids) > 0
 
