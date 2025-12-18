@@ -19,6 +19,7 @@ class Article:
     title: str
     abstract: str
     authors: list[str]
+    doi: str | None
 
 
 class PubMed:
@@ -77,11 +78,18 @@ class PubMed:
                 if lastname:
                     authors.append(f"{forename} {lastname}".strip())
 
+            doi = None
+            for article_id in article_elem.findall(".//ArticleId"):
+                if article_id.get("IdType") == "doi":
+                    doi = article_id.text
+                    break
+
             articles.append(Article(
                 pmid=pmid,
                 title=title,
                 abstract=abstract,
                 authors=authors,
+                doi=doi,
             ))
 
         return articles

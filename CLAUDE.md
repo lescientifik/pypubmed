@@ -26,6 +26,11 @@ Créer un package Python **simple, rapide et efficace** avec un seul objectif :
 - Une fonctionnalité "marche" = les tests passent
 - Pas de commit sans tests qui passent
 
+### Communication
+
+- Toujours proposer la prochaine feature avec une recommandation
+- Ne pas demander "prochaine feature ?" sans suggestion
+
 ## Stack technique
 
 - **Gestionnaire de projet** : `uv` (exclusivement)
@@ -84,7 +89,7 @@ uv publish                 # Publier sur PyPI
 
 - [ ] Pagination (`search()` avec `offset`)
 - [ ] Filtres de recherche (date, type d'article, journal)
-- [ ] `search()` retourne le count total de résultats
+- [x] `search()` retourne le count total de résultats
 
 #### Confort (priorité basse)
 

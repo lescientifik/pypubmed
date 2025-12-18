@@ -12,3 +12,11 @@ def test_fetch_returns_articles():
     assert article.title
     assert article.abstract
     assert isinstance(article.authors, list)
+
+
+def test_article_has_doi():
+    pubmed = PubMed()
+    articles = pubmed.fetch(["39344136"])
+    article = articles[0]
+    assert article.doi
+    assert article.doi.startswith("10.")
